@@ -1,0 +1,16 @@
+{
+  "name": "core-redirect",
+  "version": "0.0.1",
+  "description": "redirect logic for old core server",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "routes": "0.2",
+    "optimist": "0.6"
+  },
+  "author": "Robert Krahn",
+  "license": "MIT"
+}

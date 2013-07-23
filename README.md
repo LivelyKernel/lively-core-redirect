@@ -1,0 +1,3 @@
+# Redirect Lively server #
+
+Simple custom redirect server to be a bit user friendly...
