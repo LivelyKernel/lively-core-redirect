@@ -5,22 +5,25 @@ var http = require('http'),
 
 /* * * * * * *
 usage: call with old base url and new base 
-node core-redirect/index.js --from="http://lively-kernel.org/core" --to="http://lively-web.org/"
+node core-redirect/index.js --from="http://lively-kernel.org/core" --to="http://lively-web.org/" --port=4009
 * * * * * * */
 var argv = require('optimist').argv;
 
 var newBaseURL = url.parse(argv.to),
-    oldBaseURL = url.parse(argv.from);
+    oldBaseURL = url.parse(argv.from),
+    port = Number(argv.port) || 9101;
 function newURL(oldURL, oldBaseURL, newBaseURL) {
-    var oldURLCopy = util._extend({}, oldURL);
-    var pathname = oldURL.pathname;
+    var oldURLCopy = util._extend({}, oldURL),
+        pathname = oldURL.pathname;
     if (pathname.indexOf(oldBaseURL.pathname) === 0)
-        pathname = newBaseURL.pathname + pathname.slice(oldBaseURL.pathname.length+1)
+        pathname = newBaseURL.pathname + pathname.slice(
+	    oldBaseURL.pathname.length+1)
     return util._extend(oldURLCopy, {
         protocol: newBaseURL.protocol,
         hostname: newBaseURL.hostname,
+	host: newBaseURL.host,
         port: newBaseURL.port,
-        href: null, host: null, path: null,
+        href: null, path: null,
         pathname: pathname
     });
 }
@@ -57,13 +60,17 @@ var routes = require('routes'),
     router = new Router();
 
 router.addRoute('/*', function (req, res) {
+    console.log("Redirecting %s", req.url);
     var reqURL = url.parse(req.url),
         serverAddress = req.socket.address();
     reqURL.hostname = serverAddress.address;
     reqURL.port = serverAddress.port;
     reqURL.protocol = 'http';
     var redirectURL = newURL(reqURL, oldBaseURL, newBaseURL),
-        body = redirectInfoHTML({from: url.format(reqURL), to: url.format(redirectURL)});
+        body = redirectInfoHTML({
+	    from: url.format(reqURL),
+	    to: url.format(redirectURL)
+	});
     res.writeHead(301, {
       'Content-Length': body.length,
       'Content-Type': 'text/html' });
@@ -87,4 +94,7 @@ function site(req, res) {
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-http.createServer(site).listen(9101);
+http.createServer(site).listen(port);
+
+console.log("Started redirect server to route from %s to %s on port %s",
+	    url.format(newBaseURL), url.format(oldBaseURL), port);
